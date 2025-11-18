@@ -9,40 +9,58 @@
 <body>
   <div class="app">
     <header class="topbar">
-      <div class="greeting">
-        <div id="greetingText">Good evening 🌙</div>
+      <div class="topbar-left">
+        <div class="greeting">
+          <div id="greetingText">Good evening 🌙, Bingwa Sokoni</div>
+        </div>
       </div>
-      <div class="user">
-        <div class="username">Bingwa Sokoni BSAT</div>
-        <div class="agent" id="tillNumber">Agent Till 6975729</div>
+
+      <div class="topbar-right" aria-hidden="false">
+        <!-- Till in top right corner (styled in CSS) -->
+        <div class="till">Till 6975729</div>
+
+        <!-- keep small username/agent info for accessibility but visually optional -->
+        <div class="user">
+          <div class="username">Bingwa</div>
+          <div class="agent">Agent Till 6975729</div>
+        </div>
       </div>
     </header>
 
     <main class="content">
       <section class="cards-row">
-        <div class="card" id="airtimeCard">
+        <div class="card" id="airtimeCard" role="region" aria-label="Airtime">
           <div class="card-header">
             <button class="small-btn" id="toggleViewBtn" title="Hide / show amounts">👁</button>
             <button class="small-btn" id="refreshBtn" title="Refresh values">⟳</button>
           </div>
+
+          <!-- white inner square to emulate screenshot 1 -->
           <div class="card-body">
-            <div class="card-title">Airtime</div>
-            <div class="card-value"><span class="currency">KSh</span> <span id="airtimeAmount">2,468</span></div>
+            <div class="card-inner">
+              <div class="card-title">Airtime</div>
+              <div class="card-value"><span class="currency">KSh</span> <span id="airtimeAmount">2,468</span></div>
+            </div>
           </div>
         </div>
 
-        <div class="card" id="commissionCard">
+        <div class="card" id="commissionCard" role="region" aria-label="Estimated Commission">
           <div class="card-header">
-            <!-- keep icons aligned -->
+            <button class="small-btn" title="Hide / show amounts">👁</button>
+            <button class="small-btn" title="Refresh values">⟳</button>
           </div>
+
+          <!-- white inner square to emulate screenshot 1 -->
           <div class="card-body">
-            <div class="card-title">Est. Commission</div>
-            <div class="card-value"><span class="currency">KSh</span> <span id="commissionAmount">4,567</span></div>
+            <div class="card-inner">
+              <div class="card-title">Est. Commission</div>
+              <div class="card-value"><span class="currency">KSh</span> <span id="commissionAmount">4,567</span></div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="badges-row">
+      <section class="badges-row" aria-label="status badges">
         <div class="filter">All (<span id="allCount">347</span>)</div>
 
         <div class="badge success"><span id="successCount">347</span> successful</div>
@@ -55,11 +73,11 @@
         <div class="badge fun">0 okoa</div>
       </section>
 
-      <section id="transactions" class="transactions">
+      <section id="transactions" class="transactions" aria-live="polite">
         <!-- Transaction entries injected by JS -->
       </section>
 
-      <!-- Removed My Tools section per request -->
+      <!-- My Tools removed per earlier request -->
     </main>
 
     <footer class="footer"> </footer>
