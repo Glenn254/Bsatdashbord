@@ -1,45 +1,70 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Glenn VCF Uploader</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #121212;
-      color: #fff;
-      text-align: center;
-      padding: 40px;
-    }
-    form {
-      background: #1e1e1e;
-      padding: 20px;
-      border-radius: 10px;
-      display: inline-block;
-    }
-    input, button {
-      margin: 10px;
-      padding: 10px;
-      border-radius: 5px;
-      border: none;
-    }
-    button {
-      background: #4caf50;
-      color: #fff;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #45a049;
-    }
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard - Bingwa</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Upload Contact</h1>
-  <form action="/upload" method="POST" enctype="multipart/form-data">
-    <input type="text" name="name" placeholder="Name" required><br>
-    <input type="text" name="phone" placeholder="Phone Number" required><br>
-    <button type="submit">Upload</button>
-  </form>
+  <div class="app">
+    <header class="topbar">
+      <div class="greeting">
+        <div id="greetingText">Good evening 🌙</div>
+      </div>
+      <div class="user">
+        <div class="username">Bingwa</div>
+        <div class="agent">Agent Till 6975729</div>
+      </div>
+    </header>
+
+    <main class="content">
+      <section class="cards-row">
+        <div class="card" id="airtimeCard">
+          <div class="card-header">
+            <button class="small-btn" id="toggleViewBtn" title="Hide / show amounts">👁</button>
+            <button class="small-btn" id="refreshBtn" title="Refresh values">⟳</button>
+          </div>
+          <div class="card-body">
+            <div class="card-title">Airtime</div>
+            <div class="card-value"><span class="currency">KSh</span> <span id="airtimeAmount">2,468</span></div>
+          </div>
+        </div>
+
+        <div class="card" id="commissionCard">
+          <div class="card-header">
+            <!-- keep icons aligned -->
+          </div>
+          <div class="card-body">
+            <div class="card-title">Est. Commission</div>
+            <div class="card-value"><span class="currency">KSh</span> <span id="commissionAmount">4,567</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="badges-row">
+        <div class="filter">All (<span id="allCount">347</span>)</div>
+
+        <div class="badge success"><span id="successCount">347</span> successful</div>
+        <div class="badge error">0 errors</div>
+        <div class="badge attempt">0 second attempt</div>
+        <div class="badge black">0 blacklisted</div>
+        <div class="badge unavailable">2 unavailable offers</div>
+        <div class="badge paused">0 paused</div>
+        <div class="badge advanced">0 advanced</div>
+        <div class="badge fun">0 okoa</div>
+      </section>
+
+      <section id="transactions" class="transactions">
+        <!-- Transaction entries injected by JS -->
+      </section>
+
+      <!-- Removed My Tools section per request -->
+    </main>
+
+    <footer class="footer"> </footer>
+  </div>
+
+  <script src="app.js" defer></script>
 </body>
 </html>
