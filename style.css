@@ -25,6 +25,14 @@ body{
 .user{text-align:right}
 .user .username{font-weight:700;color:#f1f3ff}
 .user .agent{font-size:13px;margin-top:4px;color:var(--muted)}
+/* Adjusting Till position */
+.user .agent {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 14px;
+  padding-right: 20px;
+}
 
 /* Cards */
 .cards-row{display:flex;gap:18px;margin-bottom:18px}
