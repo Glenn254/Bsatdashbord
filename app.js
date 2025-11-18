@@ -1,27 +1,19 @@
-/* app.js
-   Behavior implemented per user spec:
-   - greeting auto by time
-   - airtime initial 2468, commission 4567 -> +100 on refresh or refresh button click (persisted)
-   - view/hide toggle for amounts
-   - All & Successful: baseline 347, +20 per 30-min interval since startOfDay (persisted startOfDay), reset at midnight
-   - M-Pesa transaction list of 10 items, refresh every 3 minutes and persisted so changes remain between refreshes
-*/
+/* Updated app.js — optimized for new White UI design */
 
 (() => {
-  // --- helpers ---
   const $ = (sel) => document.querySelector(sel);
   const fmtNum = (n) => n.toLocaleString();
 
-  // default values
+  // Default values
   const DEFAULT_AIRTIME = 2468;
   const DEFAULT_COM = 4567;
   const BASE_COUNT = 347;
   const COUNT_INCREMENT = 20; // every 30 minutes
   const INTERVAL_MINUTES = 30;
-  const TX_UPDATE_MS = 3 * 60 * 1000; // 3 minutes
+  const TX_UPDATE_MS = 3 * 60 * 1000;
   const MPESA_AMOUNTS = [55,20,19,49,99,47,299,699,23,50,21,51,110,249,999];
 
-  // elements
+  // Elements
   const greetingText = $('#greetingText');
   const airtimeEl = $('#airtimeAmount');
   const commissionEl = $('#commissionAmount');
@@ -31,7 +23,7 @@
   const successCountEl = $('#successCount');
   const transactionsEl = $('#transactions');
 
-  // storage keys
+  // LocalStorage Keys
   const LS = {
     airtime: 'dash_airtime',
     commission: 'dash_comm',
@@ -41,120 +33,102 @@
     mpesaUpdated: 'dash_mpesa_updated'
   };
 
-  // --- greeting ---
+  /* ---------------------- Greeting ---------------------- */
   function updateGreeting() {
     const h = new Date().getHours();
-    let text = 'Good evening 🌙,';
-    if (h >= 5 && h < 12) text = 'Good morning ☀️,';
-    else if (h >= 12 && h < 17) text = 'Good afternoon ☀️,';
-    greetingText.textContent = `${text}`;
+    let text = 'Good evening 🌙';
+    if (h >= 5 && h < 12) text = 'Good morning ☀️';
+    else if (h >= 12 && h < 17) text = 'Good afternoon ☀️';
+    greetingText.textContent = text;
   }
 
-  // --- airtime & commission management ---
-  function loadNumber(key, fallback) {
-    const v = localStorage.getItem(key);
-    if (v !== null) return parseInt(v,10);
-    localStorage.setItem(key, String(fallback));
+  /* ------------------- Amounts (Airtime & Commission) ------------------- */
+  const loadNum = (k, fallback) => {
+    const v = localStorage.getItem(k);
+    if (v !== null) return parseInt(v, 10);
+    localStorage.setItem(k, String(fallback));
     return fallback;
-  }
+  };
 
-  function saveNumber(key, val) {
-    localStorage.setItem(key, String(val));
-  }
+  const saveNum = (k, v) => localStorage.setItem(k, String(v));
 
   function incrementOnLoad() {
-    // as required: when someone refreshes the page, values change by +100
-    // implement: on each load increment by 100 once
-    const already = sessionStorage.getItem('dash_incremented_this_session');
-    if (already) return;
+    const done = sessionStorage.getItem('dash_incremented_this_session');
+    if (done) return;
     sessionStorage.setItem('dash_incremented_this_session', '1');
 
-    let a = loadNumber(LS.airtime, DEFAULT_AIRTIME);
-    let c = loadNumber(LS.commission, DEFAULT_COM);
-    a += 100;
-    c += 100;
-    saveNumber(LS.airtime, a);
-    saveNumber(LS.commission, c);
+    let a = loadNum(LS.airtime, DEFAULT_AIRTIME) + 100;
+    let c = loadNum(LS.commission, DEFAULT_COM) + 100;
+
+    saveNum(LS.airtime, a);
+    saveNum(LS.commission, c);
   }
 
   function updateAmountsUI() {
-    const airt = loadNumber(LS.airtime, DEFAULT_AIRTIME);
-    const comm = loadNumber(LS.commission, DEFAULT_COM);
+    const airt = loadNum(LS.airtime, DEFAULT_AIRTIME);
+    const comm = loadNum(LS.commission, DEFAULT_COM);
     const hidden = localStorage.getItem(LS.amountsHidden) === '1';
+
     airtimeEl.textContent = hidden ? '••••' : fmtNum(airt);
     commissionEl.textContent = hidden ? '••••' : fmtNum(comm);
+
+    // Update icon
+    toggleViewBtn.textContent = hidden ? '👁️‍🗨️' : '👁';
   }
 
-  // --- view / hide toggle ---
   function toggleView() {
-    const cur = localStorage.getItem(LS.amountsHidden) === '1';
-    localStorage.setItem(LS.amountsHidden, cur ? '0' : '1');
+    const now = localStorage.getItem(LS.amountsHidden) === '1' ? '0' : '1';
+    localStorage.setItem(LS.amountsHidden, now);
     updateAmountsUI();
   }
 
-  // --- refresh button behavior (increments by +100 immediately) ---
-  function doRefreshIncrement() {
-    let a = loadNumber(LS.airtime, DEFAULT_AIRTIME);
-    let c = loadNumber(LS.commission, DEFAULT_COM);
-    a += 100;
-    c += 100;
-    saveNumber(LS.airtime, a);
-    saveNumber(LS.commission, c);
+  function manualRefresh() {
+    let a = loadNum(LS.airtime, DEFAULT_AIRTIME) + 100;
+    let c = loadNum(LS.commission, DEFAULT_COM) + 100;
+    saveNum(LS.airtime, a);
+    saveNum(LS.commission, c);
     updateAmountsUI();
   }
 
-  // --- counts (All & Successful) logic ---
+  /* ---------------------- Counts (All & Successful) ---------------------- */
   function getStartOfDay() {
-    // ensure there is a stored start-of-day (midnight) anchor. If not or if it's from previous day, set to today's midnight.
-    const stored = localStorage.getItem(LS.startOfDayKey);
     const now = new Date();
-    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    if (!stored) {
-      localStorage.setItem(LS.startOfDayKey, String(todayMidnight));
-      return todayMidnight;
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const stored = localStorage.getItem(LS.startOfDayKey);
+
+    if (!stored || parseInt(stored, 10) !== midnight) {
+      localStorage.setItem(LS.startOfDayKey, String(midnight));
+      return midnight;
     }
-    const storedTs = parseInt(stored, 10);
-    // if stored not equal to today's midnight => reset to today's midnight
-    if (storedTs !== todayMidnight) {
-      localStorage.setItem(LS.startOfDayKey, String(todayMidnight));
-      return todayMidnight;
-    }
-    return storedTs;
+    return parseInt(stored, 10);
   }
 
   function computeCount() {
     const start = getStartOfDay();
-    const now = Date.now();
-    const mins = Math.floor((now - start) / 60000);
+    const mins = Math.floor((Date.now() - start) / 60000);
     const intervals = Math.floor(mins / INTERVAL_MINUTES);
-    const value = BASE_COUNT + (intervals * COUNT_INCREMENT);
-    return value;
+    return BASE_COUNT + intervals * COUNT_INCREMENT;
   }
 
   function updateCountsUI() {
-    const val = computeCount();
-    allCountEl.textContent = fmtNum(val);
-    successCountEl.textContent = fmtNum(val);
+    const v = computeCount();
+    allCountEl.textContent = fmtNum(v);
+    successCountEl.textContent = fmtNum(v);
   }
 
-  // --- MPESA transactions generation & persistence ---
-  function randFrom(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
-  function randChar(){
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    return chars.charAt(Math.floor(Math.random()*chars.length));
-  }
-  function genMpesaCode() {
-    // Must start with 'T' and be all uppercase. Make length ~10 (T + 9 chars)
-    let s = 'T';
-    for (let i=0;i<9;i++) s += randChar();
+  /* ---------------------- MPESA Transactions ---------------------- */
+  const randFrom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const randChar = () => "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[Math.floor(Math.random()*36)];
+
+  const genMpesaCode = () => {
+    let s = "T";
+    for (let i = 0; i < 9; i++) s += randChar();
     return s;
-  }
-  function genPhonePartial() {
-    // starts strictly with +2547 then three digits then ellipsis
-    const d1 = Math.floor(100 + Math.random()*900); // 3 digits
-    return `+2547${d1}...`;
-  }
-  function genTxEntry() {
+  };
+
+  const genPhonePartial = () => `+2547${Math.floor(100 + Math.random()*900)}...`;
+
+  function genTx() {
     return {
       code: genMpesaCode(),
       amount: randFrom(MPESA_AMOUNTS),
@@ -164,11 +138,9 @@
   }
 
   function loadMpesa() {
-    const stored = localStorage.getItem(LS.mpesaData);
+    const data = localStorage.getItem(LS.mpesaData);
     const updated = localStorage.getItem(LS.mpesaUpdated);
-    if (stored && updated) {
-      return { items: JSON.parse(stored), updatedAt: parseInt(updated,10) };
-    }
+    if (data && updated) return { items: JSON.parse(data), updatedAt: parseInt(updated,10) };
     return null;
   }
 
@@ -177,21 +149,12 @@
     localStorage.setItem(LS.mpesaUpdated, String(Date.now()));
   }
 
-  function refreshMpesaIfNeeded(force=false) {
+  function refreshMpesa(force=false) {
     const existing = loadMpesa();
     const now = Date.now();
-    if (!existing || force) {
-      const items = [];
-      for (let i=0;i<10;i++) items.push(genTxEntry());
-      saveMpesa(items);
-      renderMpesa(items);
-      return;
-    }
-    // otherwise check time difference
-    const elapsed = now - existing.updatedAt;
-    if (elapsed >= TX_UPDATE_MS) {
-      const items = [];
-      for (let i=0;i<10;i++) items.push(genTxEntry());
+
+    if (!existing || force || (now - existing.updatedAt >= TX_UPDATE_MS)) {
+      const items = Array.from({length:10}, genTx);
       saveMpesa(items);
       renderMpesa(items);
     } else {
@@ -199,25 +162,57 @@
     }
   }
 
-  // --- rendering transactions ---
+  /* ---------------------- Render Transactions ---------------------- */
   function renderMpesa(items) {
     transactionsEl.innerHTML = '';
-    items.forEach(it => {
-      const div = document.createElement('div');
-      div.className = 'tx';
-      div.innerHTML = `
+
+    items.forEach((it) => {
+      const row = document.createElement('div');
+      row.className = 'tx';
+      row.innerHTML = `
         <div class="tx-left">
           <div class="tx-title">${it.code}</div>
           <div class="tx-sub">KSh ${it.amount} • ${it.phone}</div>
         </div>
+
         <div class="tx-actions">
           <div class="tick">✔</div>
-          <button class="icon-btn copy-btn" data-code="${it.code}" title="Copy code">📋</button>
+          <button class="icon-btn copy-btn" data-code="${it.code}">📋</button>
           <div class="arrow">›</div>
         </div>
       `;
-      transactionsEl.appendChild(div);
+      transactionsEl.appendChild(row);
     });
 
-    // attach copy listeners
-    document.querySelectorAll('.copy-btn').forEach
+    document.querySelectorAll('.copy-btn').forEach((btn) => {
+      btn.onclick = () => {
+        const code = btn.dataset.code;
+        navigator.clipboard.writeText(code).then(() => {
+          btn.textContent = '✓';
+          setTimeout(() => (btn.textContent = '📋'), 900);
+        });
+      };
+    });
+  }
+
+  /* ---------------------- Init ---------------------- */
+  function init() {
+    updateGreeting();
+
+    incrementOnLoad();
+    updateAmountsUI();
+    updateCountsUI();
+
+    refreshMpesa();
+
+    toggleViewBtn.onclick = toggleView;
+    refreshBtn.onclick = manualRefresh;
+
+    setInterval(updateGreeting, 60000);
+    setInterval(updateCountsUI, 60000);
+    setInterval(() => refreshMpesa(true), TX_UPDATE_MS + 500);
+    setInterval(updateAmountsUI, 2000);
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
