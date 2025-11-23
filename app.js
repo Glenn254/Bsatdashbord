@@ -8,7 +8,7 @@
   const COUNT_INCREMENT = 20;
   const INTERVAL_MINUTES = 30;
   const TX_UPDATE_MS = 3*60*1000;
-  const MPESA_AMOUNTS = [55,20,19,49,99,47,299,699,23,50,21,51,110,249,999];
+  const MPESA_AMOUNTS = [64];
 
   const greetingText = $('#greetingText');
   const airtimeEl = $('#airtimeAmount');
